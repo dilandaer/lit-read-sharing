@@ -58,18 +58,23 @@ pdftoppm -r 150 -f 4 -l 4 -png -singlefile "src.pdf" "pages\p004"
   legible. Use this for whole pages.
 - 300 dpi → about 2532 × 3338 px for a full page. Needed for stacked limits, sub/superscripts in
   fractions, and matrix elements. Crop rather than render the whole page at 300 dpi.
-- Crop is in **device pixels of the 150-dpi page**, not fractions:
+- Crop coordinates are in **pixels of the render you are making** — not fractions, and not a fixed
+  reference resolution. `-x/-y/-W/-H` select a box in the *output* bitmap, so the same numbers that
+  cover a region at 150 dpi cover a quarter of that area at 300 dpi:
 
 ```powershell
-# fractions (0..1, origin top-left) of the page box
-$x = [int]($x0 * $w150); $y = [int]($y0 * $h150)
-$W = [int](($x1-$x0) * $w150); $H = [int](($y1-$y0) * $h150)
-pdftoppm -r 300 -f $n -l $n -x $x -y $y -W $W -H $H -png -singlefile "src.pdf" "pages\p004_z"
+# fractions (0..1, origin top-left) of the page box, measured on the 150-dpi page
+$dpi = 300; $k = $dpi / 150
+$x = [int]($x0 * $w150 * $k); $y = [int]($y0 * $h150 * $k)
+$W = [int](($x1-$x0) * $w150 * $k); $H = [int](($y1-$y0) * $h150 * $k)
+pdftoppm -r $dpi -f $n -l $n -x $x -y $y -W $W -H $H -png -singlefile "src.pdf" "pages\p004_z"
 ```
 
-Note the asymmetry: `-x/-y/-W/-H` are given in the *source* page's pixel space, which is why you
-measure the 150-dpi page first and pass 150-dpi pixel coordinates while rendering at `-r 300`.
-`litread-page.ps1` does exactly this; prefer it over hand-rolled commands.
+The one-line check for this: render the same `-W 400` at `-r 150` and at `-r 300`. Both files are
+400 px wide — that is the tell that the box is in output pixels, not source pixels. If you measured
+on the 150-dpi page and pass those numbers to `-r 300`, every crop comes out half-size.
+`litread-page.ps1` sidesteps the trap by rendering a full page at the target `-Dpi` first and
+measuring *that* bitmap, so `-Box` fractions are right at any dpi; prefer it over hand-rolled commands.
 
 Rendering budget: 150 dpi ≈ 150–600 KB per page. A 123-page SI rendered whole is ~40 MB and
 minutes of IO. Render the twelve pages you will actually read, then PAGE on demand.
@@ -136,5 +141,5 @@ Select-String -Path "lit_reading\<key>\text\*.txt" -Pattern '\(7\)' | Select-Obj
 | ligatures: `ﬁ`, `ﬂ`, `ﬀ` | font encoding | normalize in your notes; do not grep on them |
 | `−` (U+2212) vs `-` vs `–` | typography | normalize to `-` before pattern matching |
 | `pdftoppm` writes `p004-1.png` | `-singlefile` missing | always pass `-singlefile` |
-| crop offset wrong | coordinates given as fractions, expected pixels | measure the 150-dpi page first |
+| crop offset wrong / crop half-size | box given as fractions, or measured at one dpi and rendered at another | scale by `dpi/150`; a 400-px box at `-r 150` and `-r 300` is the same 400 px wide but not the same area |
 | PDF opens but renders blank | page rotation / crop box | render whole page, inspect; note it in SOURCE.md |
