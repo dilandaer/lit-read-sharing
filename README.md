@@ -94,6 +94,22 @@ install/AGENTS.md.snippet
 
 ---
 
+### 如果 `git push` 失败
+
+症状：`git push` 报 `Recv failure: Connection was reset` 或 `Failed to connect to github.com:443`，但浏览器能打开 GitHub、`api.github.com` 也正常。原因是 git 不走 Windows 的系统代理设置，直连 github.com 的 git 端点被重置。
+
+两种处理：
+
+```bash
+# 1) 让 git 走本地代理（端口按你的客户端改；v2rayN/mihomo 常见 10808）
+git config --global http.https://github.com.proxy http://127.0.0.1:10808
+
+# 2) 或者完全不碰 git，用 REST API 发布
+GH_TOKEN=$(gh auth token) node install/publish.js
+```
+
+`install/publish.js` 只依赖 `api.github.com`，在 github.com 的 git 端口被拦时也能把工作树提交上去。
+
 ## 更新发布
 
 改完文件后（本地 git 提交即可，历史不必与远端一致）：
