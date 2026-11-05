@@ -110,6 +110,19 @@ GH_TOKEN=$(gh auth token) node install/publish.js
 
 `install/publish.js` 只依赖 `api.github.com`，在 github.com 的 git 端口被拦时也能把工作树提交上去。
 
+### 两种推送方式（二选一，别混用）
+
+| 方式 | 前提 | 命令 |
+|---|---|---|
+| https + gh | `gh auth login` 有有效令牌；git 配了代理 | `git push` |
+| ssh 443 | `~/.ssh/id_ed25519` 已加到 GitHub；ssh 走 443 端口 | `git remote set-url origin ssh://git@ssh.github.com:443/dilandaer/lit-read-sharing.git` |
+
+踩过的坑，按现象查：
+
+- `git push` 报 `could not read Username` 或 `Bad credentials` → `gh` 掉线了（`gh auth logout` 只删本地凭据；撤销授权后必须重新 `gh auth login`）。
+- `git push` 报 `Connection was reset` / 超时，但浏览器能开 GitHub → git 没走代理，见上一节。
+- 仓库 remote 被改成 `ssh://git@ssh.github.com:443/...` 时，`https` 的代理配置不起作用；两种方式各自依赖不同凭据，混用时症状会互相掩盖。
+
 ## 更新发布
 
 改完文件后（本地 git 提交即可，历史不必与远端一致）：
