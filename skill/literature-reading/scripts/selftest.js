@@ -54,6 +54,8 @@ const REQUIRED = [
   'SKILL.md',
   'references/pdf-pipeline.md',
   'references/theoretical-chemistry-checklist.md',
+  'references/claim-discipline.md',
+  'references/derivation-package.md',
   'references/dsh-chat-rendering.md',
   'references/preset-prompt.md',
   'templates/CARD.md',

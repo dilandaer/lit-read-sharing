@@ -61,6 +61,21 @@ not show. Anything short of that is a summary.
 4. **Reading is a dialogue.** Stop at each checkpoint with at most three questions and wait.
    Dumping four documents before the skeleton is agreed is a failure, not thoroughness.
 
+## Assertion discipline — 结论级 vs 机制级
+
+Two kinds, two bars. **结论级** ("this number / these two equations are wrong") needs an
+independent check: a second derivation, another limit, a pixel comparison, a later paper.
+**机制级** ("why it is wrong — which term cancels, which convergence law applies") is `(inferred)`
+by default and must carry the sentence that would falsify it; if you cannot name that check, write
+"未解释" instead of inventing a reason. A prescription can survive review while every reason
+attached to it does not — treat that asymmetry as the normal case, not as bad luck.
+
+Walk `references/claim-discipline.md` before any objection: local-zero ⇒ global-zero,
+diagonal-zero ⇒ smooth, one symbol standing for two objects, symmetry pushed past the algebra,
+post-hoc mechanisms, self-tests that degenerate, bibliography ≠ content, "not discussed" without
+grepping `text/*.txt`, print error ≠ implementation error, `未核实` only for the third of three
+kinds, and the self-correction ledger.
+
 ## Output rendering (binding)
 
 1. Inline `$ … $` by default.
@@ -102,8 +117,11 @@ not show. Anything short of that is a summary.
 3. `DERIVATION.md` (template `templates/DERIVATION.md`) — 公式地图 first, then walk the
    load-bearing equations. Each step typed
    identity / proposition / approximation / interpretation, status
-   REPRODUCED / REPRODUCED WITH CORRECTION / GAP. A GAP names what is missing: definition,
-   reference, or algebra.
+   REPRODUCED / REPRODUCED AFTER REFRAMING / GAP. Method and status vocabulary live in
+   `references/derivation-package.md`: build the **对象表** first (one symbol, two objects is the
+   classic failure), put assumptions the authors never wrote in their own A1… list, and prefer a
+   constant-model numeric check over a third paragraph of algebra. A GAP names what is missing:
+   definition, reference, or algebra.
 4. `CRITIQUE.md` — 隐藏假设 / 论证类型 / 没有展示的东西 / 适用范围 / 可推广方向. Do not
    manufacture objections; "两处隐藏假设，都不影响主结论" is a legitimate result.
 5. Checkpoints: one 复述, one 预测 (ask before revealing), one 反例. Never answer your own

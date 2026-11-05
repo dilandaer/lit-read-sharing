@@ -141,6 +141,31 @@ sample term, and two equations skipped outright — and the reader caught it. Do
    and wait for the answer. Producing all four documents before the user has agreed on the
    skeleton is a failure of this mode, not thoroughness.
 
+## Assertion discipline — 结论级 vs 机制级
+
+Every critique you emit is one of two kinds, and the two have different evidentiary bars:
+
+- **结论级** — this number is wrong / these two equations contradict each other / this premise is
+  unstated. Needs an independent check: a second derivation, another limiting case, a pixel
+  comparison, a later paper. Without one it stays `未核实`.
+- **机制级** — *why* it is wrong: which term cancels, which convergence law applies, which
+  symmetry survives. **Not established by default.** Tag `(inferred)` and add the sentence that
+  would let the user falsify it. If you cannot name that check, write "未解释" instead of inventing
+  one — a plausible mechanism propping up a true conclusion is the most expensive output this skill
+  produces, because the reader can check a conclusion but has to redo the reasoning to catch a
+  wrong reason. Expect the asymmetry to be routine: prescriptions survive review while their
+  reasons do not.
+
+Before writing any objection, walk `references/claim-discipline.md`: eleven named failure shapes,
+each with the one-line test that settles it — local-zero ⇒ global-zero, diagonal-zero ⇒ smooth,
+one symbol standing for two objects, symmetry pushed past the algebra, post-hoc mechanisms,
+self-tests that degenerate at the limit, bibliographic hits ≠ content, "not discussed" without
+grepping, print error ≠ implementation error, `未核实` reserved for the third of three kinds, and
+the self-correction ledger.
+
+Three questions before sending: 结论级 or 机制级? did I state the domain and convention of that
+integral? is my "未说明" grepped?
+
 ## Workflow routing
 
 | request | mode | produced |
@@ -235,14 +260,22 @@ Then walk the equations that carry the argument (not all forty). For each:
 状态: REPRODUCED | REPRODUCED WITH CORRECTION | GAP
 ```
 
-The four step types are borrowed from `formula-derivation` on purpose: labelling a step
-`approximation` is what forces the questions "drops what, valid when".
+The four step types and the three statuses are specified in
+`references/derivation-package.md` — read it before writing a DERIVATION.md that someone will
+argue with. Its load-bearing additions for paper reading:
 
-A `GAP` row must name which of three things is missing: a definition, a reference, or an
-algebraic step. "无法复现" alone is worthless. Gaps are the seed corn of QUESTIONS.md.
+- **对象表 first.** One symbol pointing at two different objects is the most common failure in
+  this literature. The table lives in SYMBOLS.md's 口径核对 section; DERIVATION only cites rows.
+- Every step carries 步型 + anchor; `approximation` must state "drops what, fails when".
+- Assumptions the authors never wrote go in their own numbered list A1…, never mixed into
+  "limitations the authors admit" — the two answer different questions.
+- If a constant model or a small matrix can settle it, do that instead of writing a third
+  paragraph of algebra.
+- Close by checking that every concluding sentence points back to a subsection, and grep the old
+  wording: a corrected claim that is still printed in the body is a live claim.
 
-If the user wants a paper-grade derivation document, hand off to `Skill(formula-derivation)`.
-DERIVATION.md then keeps only the entry point and the gap list.
+Hand off to `Skill(formula-derivation)` only when the user wants their **own** theory built up from
+scratch; for reconstructing a paper's chain, stay here.
 
 ## Step 4 — CRITIQUE.md (批判性审查)
 
@@ -303,6 +336,14 @@ Q-id | 来源 (key + anchor) | 类型 (概念缺口 / 方法缺口 / 数据冲�
 - Compressing a translation: "式 (35)–(42) 结构相同，故只给出 (35)(36)" / dropping a footnote / 概述一段
   承认局限的原文. In `translate` mode this is treated as an incomplete deliverable.
 - Explaining what TD-DFT is. The user knows. Explain why *this* paper needs SCS.
+- Proving an integral or a sum is zero from "the integrand vanishes on every radial shell": a
+  conditionally convergent kernel depends on the shape of the domain, not only on the integrand
+  (`references/claim-discipline.md` §1).
+- Turning "the periodicity changed" into "the selection rule fails / a bigger FFT grid is needed"
+  without writing the phase down once and translating the coordinates (§4).
+- Bolting a mechanism onto a number you already got right, where no later step uses it (§5).
+- Citing a Crossref hit as evidence that a paper *showed* something (see §7).
+- Writing "the authors do not discuss X" before grepping `text/*.txt` for it (§8).
 
 ## Completion
 
@@ -325,7 +366,7 @@ Nothing in this folder is verified by reading it. After touching `SKILL.md`, a t
 script, run the gates — they are the only evidence that the change is consistent:
 
 1. `node $SKILL_DIR/scripts/selftest.js` must print `PASS: … 项全部通过` (exit 0). It checks the
-   18 required files, each template's promised headings, that every `state/dossiers.tsv` row still
+   20 required files, each template's promised headings, that every `state/dossiers.tsv` row still
    resolves, the rule-sync gate below, and both math/coverage scripts in both directions
    (converts a bad span; leaves CJK `\text{}` alone; coverage exits 0 on a complete translation and
    1 on one missing a float).
