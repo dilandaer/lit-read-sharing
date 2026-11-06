@@ -12,8 +12,7 @@
  *
  * 它做什么：
  *   1. 取 persona 正文（`preset-prompt.md` 里从 "You are a co-reader" 起到文末）；
- *   2. 取内置 standard preset 的插件清单（优先用 %TEMP%/asarout 的缓存，没有就按 asar 头
- *      解析 app.asar 现场抽出来）；
+ *   2. 从当前安装的 app.asar 提取内置 standard preset，避免旧缓存跨版本混用；
  *   3. 生成 `- insert:` 条目（id `preset-litreading`、config.id `litreading`、order 5）；
  *   4. 在 `profiles/desktop/cordis.patch.yml` 里**替换**旧条目（按生成文件的注释头定位，
  *      删到下一个顶层列表项为止），其余条目原样保留，写前备份；
@@ -35,7 +34,6 @@ const ASAR = process.env.DSH_ASAR || path.join(
   process.env.LOCALAPPDATA || path.join(H, 'AppData', 'Local'),
   'Programs', 'DeepSeek Harness', 'resources', 'app.asar'
 );
-const CACHE = path.join(os.tmpdir(), 'asarout', 'dsh__node_modules__@deepseek-ai__dsh-web-app__presets__standard.patch.yml');
 const MARK = '# Literature-reading agent preset. Generated from';
 const END_MARK = '# end: literature-reading preset';
 const DRY = process.argv.includes('--dry-run');
@@ -71,7 +69,7 @@ function fromAsar() {
     const jsonBuf = Buffer.alloc(headerSize);
     fs.readSync(fd, jsonBuf, 0, headerSize, 16);
     const tree = JSON.parse(jsonBuf.toString('utf8'));
-    const base = 16 + headerSize;
+    const base = 8 + head.readUInt32LE(4); // ASAR header pickle includes alignment padding.
     const want = 'dsh-web-app/presets/standard.patch.yml';
     let hit = null;
     (function walk(node, trail) {
@@ -90,7 +88,7 @@ function fromAsar() {
     fs.closeSync(fd);
   }
 }
-const standard = fs.existsSync(CACHE) ? fs.readFileSync(CACHE, 'utf8') : fromAsar();
+const standard = fromAsar();
 const stdLines = standard.split(/\r?\n/);
 
 // ---------- 3. entry ----------
@@ -191,4 +189,4 @@ fs.writeFileSync(PATCH, next, 'utf8');
 console.log(`${action}: persona ${persona.length} 字符 / entry ${entry.length} 行`);
 console.log(`patch: ${patchLines.length} -> ${next.split('\n').length} 行, 顶层条目 ${doc.length}, preset 行 ${rows.length}, id 唯一`);
 console.log('backup: ' + backup);
-console.log('STATUS: ok  （Loader 会热加载；模式只影响之后新建的会话）');
+console.log('STATUS: ok  （重新打开或恢复会话时使用更新后的模式）');

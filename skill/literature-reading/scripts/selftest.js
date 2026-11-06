@@ -200,6 +200,28 @@ if (!fs.existsSync(REG)) {
   );
 }
 
+// Regression: a stale extraction cache must never override the installed ASAR.
+{
+  const dir = tmpdir();
+  fs.mkdirSync(path.join(dir, 'asarout'));
+  fs.writeFileSync(path.join(dir, 'asarout', 'dsh__node_modules__@deepseek-ai__dsh-web-app__presets__standard.patch.yml'), 'obsolete preset');
+  const standard = '- insert:\n    - id: preset-standard\n      config:\n        id: standard\n        order: 1\n        plugins:\n          - id: persona\n            config:\n              prefix: You are a coding agent\n';
+  let tree = { size: Buffer.byteLength(standard), offset: '0' };
+  for (const key of ['standard.patch.yml', 'presets', 'dsh-web-app']) tree = { files: { [key]: tree } };
+  let json = JSON.stringify(tree);
+  if (Buffer.byteLength(json) % 4 === 0) json += ' ';
+  const size = Buffer.byteLength(json), padding = (4 - size % 4) % 4;
+  const head = Buffer.alloc(16);
+  head.writeUInt32LE(8 + size + padding, 4);
+  head.writeUInt32LE(size, 12);
+  const asar = path.join(dir, 'app.asar');
+  fs.writeFileSync(asar, Buffer.concat([head, Buffer.from(json), Buffer.alloc(padding), Buffer.from(standard)]));
+  const r = spawnSync(NODE, [path.join(ROOT, 'scripts', 'update-preset.js'), '--dry-run'], {
+    encoding: 'utf8', env: { ...process.env, TEMP: dir, TMP: dir, DSH_ASAR: asar },
+  });
+  check('preset 忽略旧缓存并正确读取 ASAR 对齐偏移', r.status === 0, r.stdout + r.stderr);
+}
+
 // ---- 7. 已装 preset（软检查） ----
 {
   const dsh = process.env.DSH_HOME || path.join(os.homedir(), '.dsh');
